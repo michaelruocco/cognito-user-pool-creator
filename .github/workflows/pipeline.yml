@@ -3,7 +3,7 @@ name: pipeline
 on:
   push:
     branches-ignore:
-      - 'library-template-*'
+      - 'cognito-user-pool-creator-*'
 
 permissions:
   checks: write
