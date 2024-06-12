@@ -99,3 +99,4 @@ jobs:
           ./gradlew release -Prelease.customUsername=${{ github.actor }} -Prelease.customPassword=${{ github.token }}
           ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
           ./gradlew currentVersion
+
