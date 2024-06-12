@@ -17,7 +17,7 @@ group "com.github.michaelruocco"
 ext {
     slf4jVersion = "2.0.13"
     lombokVersion = "1.18.32"
-    cognitoVersion = "2.25.69"
+    cognitoVersion = "2.26.0"
 
     junitVersion = "5.10.2"
 }
@@ -97,7 +97,7 @@ configurations {
 }
 
 jacoco {
-    toolVersion = "0.8.7"
+    toolVersion = "0.8.12"
 }
 
 jacocoTestReport {
@@ -182,7 +182,7 @@ signLibPublication.enabled = gradle.startParameter.taskNames.contains("publishTo
 
 spotless {
     java {
-        palantirJavaFormat("2.38.0")
+        palantirJavaFormat("2.47.0")
     }
 }
 
