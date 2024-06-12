@@ -106,7 +106,7 @@ jacocoTestReport {
     executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
     reports {
         xml.required = true
-        xml.outputLocation = file("${buildDir}/reports/jacoco/report.xml")
+        xml.outputLocation = file("${projectDir}/build/reports/jacoco/report.xml")
     }
 }
 
@@ -116,7 +116,7 @@ sonarqube {
         property "sonar.host.url", "https://sonarcloud.io"
         property "sonar.organization", "michaelruocco"
         property "sonar.projectKey", "michaelruocco_${name}"
-        property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/report.xml"
+        property "sonar.coverage.jacoco.xmlReportPaths", "${projectDir}/build/reports/jacoco/report.xml"
     }
 }
 
