@@ -12,59 +12,67 @@
 
 ## Overview
 
-This is a template project for creating library projects more quickly. It does not include test
-fixtures or integration tests as these are not always required, but attempts to give the other
-commonly used components that I like to use on library projects including:
+This library contains code to enable Java applications to be able to create cognito user
+pools when using this [cognito-local](https://github.com/jagregory/cognito-local) for local
+testing. It would be preferable to use [local-stack](https://www.localstack.cloud/) but
+unfortunately the AWS Cognito support is not free when using local-stack, so the approach
+of using this library with cognito-local offers an alterantive for Java applications that use
+Cognito.
 
-*   [Lombok](https://projectlombok.org/) for boilerplate code generation
+## Implementing config
 
-*   [AssertJ](https://joel-costigliola.github.io/assertj/) for fluent and readable assertions
+The `CognitoUserPoolConfig` interface is available for you to implement the configuration
+you require for your user pool. Only a handful of options within Cognito are configurable
+at present, these include:
 
-*   [SLF4J](http://www.slf4j.org/) for abstracted and pluggable logging
+* User pool name
+* User pool client name
+* Groups
+* Users
 
-*   [JUnit5](https://junit.org/junit5/) for unit testing
+## Creating a user pool
 
-*   [Mockito](https://site.mockito.org/) for mocking
+Once you have implemented your config class you can create your used pool by creating
+and instance of `CognitoUserPoolCreater` passing in your config class and an instance of
+`CognitoIdentityProviderClient` that is able to connect to your AWS account (or cognito-local
+docker image.) Then you can call the `create()` method to create the user pool based on
+the configuration class you have provided. The create method returns an instance of
+`CognitoUserPoolAndClientId` which will contain the ids of your newly created cognito
+user pool and client, which you can use in your application configuration to connect to
+the user pool.
 
-*   [Axion release plugin](https://github.com/allegro/axion-release-plugin) for version management
+```java
+    CognitoUserPoolCreator creator = CognitoUserPoolCreator.builder()
+            .config(userPoolConfig)
+            .client(buildIdentityProviderClient())
+            .build();
+    CognitoUserPoolAndClientId poolAndClientIds = creator.create();
+    System.out.println(poolAndClientIds.getPoolId());
+    System.out.println(poolAndClientIds.getClientId());
+```
 
-*   [Spotless plugin](https://github.com/diffplug/spotless/tree/main/plugin-gradle) for code formatting
+The `CognitoUserPoolIdPopulator` is also available help you populate the user
+pool id into your application config if required. For example, if your application
+requires the cognito user pool for access token authentication, then the application
+will require an issuer url to be configured, one option is to configure the url with
+a placeholder for the pool id e.g. `http://localhost:9229/%POOL_ID%` then you can
+populate the pool id returned from the user pool creator in place of the placeholder
+e.g.
 
-*   [Nebula plugin](https://github.com/nebula-plugins/gradle-lint-plugin) for gradle linting
+```java
+    CognitoUserPoolCreator creator = CognitoUserPoolCreator.builder()
+            .config(userPoolConfig)
+            .client(buildIdentityProviderClient())
+            .build();
+    CognitoUserPoolAndClientId poolAndClientIds = creator.create();
+    CognitoUserPoolIdPopulator populator = new CognitoUserPoolIdPopulator(poolAndClientIds.getPoolId());
+    String placeholder = "http://localhost:9229/%POOL_ID%";
+    System.out.println(populator.replacePoolIdIfRequired(placeholder));
+```
 
-*   [Versions plugin](https://github.com/ben-manes/gradle-versions-plugin) for monitoring dependency versions
-
-*   [Jacoco plugin](https://docs.gradle.org/current/userguide/jacoco_plugin.html) for code coverage reporting
-
-*   [Test Logger plugin](https://plugins.gradle.org/plugin/com.adarshr.test-logger) for pretty printing of test
-    results when running tests from gradle
-    
-*   [Github actions](https://github.com/actions) for the build pipeline
-
-*   [Maven publish plugin](https://docs.gradle.org/current/userguide/publishing_maven.html) for publishing snapshots
-    and releases to [Maven Central](https://search.maven.org/)
-    
-*   [Nexus staging plugin](https://github.com/Codearte/gradle-nexus-staging-plugin) to automatically close and drop
-    releases published to [Maven Central](https://search.maven.org/)
-
-*   [Better code hub](https://bettercodehub.com/) for code and architecture analysis
-
-*   [Codecov](https://codecov.io/) for code coverage analysis
-
-*   [Sonar Cloud](https://sonarcloud.io/) for static code analysis 
-
-*   [Codacy](https://www.codacy.com/) for additional static code and coverage analysis
- 
-*   [Dependency Check](https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/) checks dependencies for
-    vulnerabilities
-
-For a number of the above tools to work your Github Actions pipeline will require the
-following secrets to be set up:
-
-*   SONAR_TOKEN for [Sonar Cloud](https://sonarcloud.io/) analysis
-*   CODACY_TOKEN for [Codacy](https://www.codacy.com/) analysis
-*   OSSRH_USERNAME and OSSRH_PASSWORD for releasing snapshots and releases to Maven Central
-*   OSSRH_PGP_SECRET_KEY and OSSRH_PGP_SECRET_KEY_PASSWORD for signing release artifacts before pushing to maven central
+In the example code above, if the created pool id was `local_2E5pXlz0` then
+the output of `replacePoolIdIfRequired` in the code above would be:
+`http://localhost:9229/local_2E5pXlz0`
 
 ## Useful Commands
 
@@ -75,6 +83,6 @@ following secrets to be set up:
 // formats code
 // builds code
 // runs tests
-// checks dependencies for vulnerabilities
-./gradlew clean dependencyUpdates lintGradle spotlessApply build
+// runs integration tests
+./gradlew clean dependencyUpdates criticalLintGradle spotlessApply build integrationTest
 ```
